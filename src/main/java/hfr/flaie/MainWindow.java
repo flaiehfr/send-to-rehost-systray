@@ -300,31 +300,31 @@ class MainWindow {
 
         if (clipboardContent != null) {
             try {
-                // Check if the clipboard contains plain text
+                // Check if the clipboard contains image
                 if (clipboardContent.isDataFlavorSupported(DataFlavor.imageFlavor)) {
                     BufferedImage clip = (BufferedImage) clipboardContent.getTransferData(DataFlavor.imageFlavor);
 
-                    // Save to a temporary file
                     File tempFile = File.createTempFile("clipboard_", ".png");
                     System.out.println(tempFile.getAbsolutePath());
                     ImageIO.write(clip, "png", tempFile);
+                    tempFile.deleteOnExit();
 
                     System.out.println("Sending image from clipboard");
                     new Thread(() -> handleFiles(List.of(tempFile))).start();
-                } else if (clipboardContent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                }
+                // or if it contains files
+                else if (clipboardContent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                     List<File> clip = (List<File>) clipboardContent.getTransferData(DataFlavor.javaFileListFlavor);
                     List<File> supportedFiles = clip.stream().filter(this::isImageSupported).collect(Collectors.toList());
 
                     System.out.println("Sending images from files in clipboard");
                     new Thread(() -> handleFiles(supportedFiles)).start();
                 } else {
-                    System.out.println("Clipboard does not contain image.");
+                    System.out.println("Clipboard does not contain image or list of files.");
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-        } else {
-            System.out.println("Clipboard is empty.");
         }
     }
 }

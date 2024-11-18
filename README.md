@@ -5,12 +5,20 @@
 ---
 
 ## Comment utiliser
-1. **Télécharger l'archive**: [https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1.1/send-to-rehost.jar](https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1.1/send-to-rehost.jar)
+
+### Drag & Drop
+
+1. **Télécharger l'archive**:
 2. **Version de Java**: Il vous faut une version de Java 11 minimum, plus récent c'est mieux 
 3. **Démarrez l'application** : En double cliquant sur le fichier `send-to-rehost.jar`, ou depuis une ligne de commande `java -jar send-to-rehost.jar`. L'icône apparaîtra dans le systray Windows.
 4. **Déposez vos images** : Faites glisser vos fichiers dans la fenêtre ouverte.
 5. **Récupérez les résultats** : Une fois l'icône revenue à son état initial, le résultat se trouve dans votre presse-papier.
 6. **Collez sur HFR**
+
+### Copier - Coller
+
+Si vous avez déjà une image (capture d'écran ou partie d'écran, ou un ou plusieurs fichier(s) image) déjà dans votre presse papier, 
+vous pouvez presser `Ctrl+V` sur la fenêtre avec le redface pour envoyer sur `rehost.diberie.com`.
 
 ---
 

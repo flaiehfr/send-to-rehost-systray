@@ -1,4 +1,4 @@
-# Send to Rehost - Systray
+# ![](docs/redface-small.png) Send to Rehost - Systray
 
 **Send to Rehost** est une application légère qui permet de transférer facilement des images vers `rehost.diberie.com` directement depuis la barre système (systray) de Windows.
 

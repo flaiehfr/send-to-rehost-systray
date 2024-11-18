@@ -6,11 +6,9 @@ import com.google.gson.Gson;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.datatransfer.*;
 import java.awt.dnd.*;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +31,12 @@ class MainWindow {
     private final ImageIcon rfBw = imageIcon("/redfacebw.png");
     private final ImageIcon rf = imageIcon("/redface.png");
     private final JLabel imageLabel = new JLabel();
+    private final JProgressBar progressBar = new JProgressBar(0, 100);
+    private final JLabel statusLabel = new JLabel("Envoyer vers Rehost", JLabel.CENTER);
 
     public MainWindow() {
         this.frame = createFrame();
+        this.addClipboardListener(this.frame);
     }
 
     public static java.util.List<String> fetchCookie(String urlString, String email, String password) throws Exception {
@@ -119,22 +120,19 @@ class MainWindow {
 
     private JPanel createContentPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+        statusLabel.setFont(new Font("Arial", Font.BOLD, 15));
 
-        JLabel label = new JLabel("Envoyer vers Rehost", JLabel.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 15));
-
-        JProgressBar progressBar = new JProgressBar(0, 100);
         progressBar.setStringPainted(true);
         progressBar.setVisible(false);
 
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         setBlackAndWhiteFace();
 
-        panel.add(label, BorderLayout.PAGE_START);
+        panel.add(statusLabel, BorderLayout.PAGE_START);
         panel.add(imageLabel, BorderLayout.CENTER);
         panel.add(progressBar, BorderLayout.PAGE_END);
 
-        addDragAndDropSupport(panel, progressBar, imageLabel, label);
+        addDragAndDropSupport(panel);
 
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem configItem = new JMenuItem("Configuration");
@@ -157,7 +155,19 @@ class MainWindow {
         return panel;
     }
 
-    private void addDragAndDropSupport(JPanel panel, JProgressBar progressBar, JLabel imageLabel, JLabel label) {
+    private boolean isImageSupported(File file) {
+        String path = file.getAbsolutePath();
+        String ext = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+        return ext.equals("png") || ext.equals("jpg") || ext.equals("jpeg") || ext.equals("gif");
+    }
+
+    @SuppressWarnings("unchecked")
+    private java.util.List<File> droppedFiles(DropTargetDropEvent dtde) throws IOException, UnsupportedFlavorException {
+        return ((java.util.List<File>) dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor))
+                .stream().filter(this::isImageSupported).collect(Collectors.toList());
+    }
+
+    private void addDragAndDropSupport(JPanel panel) {
         new DropTarget(panel, new DropTargetListener() {
             @Override
             public void dragEnter(DropTargetDragEvent dtde) {
@@ -175,25 +185,13 @@ class MainWindow {
             public void dragExit(DropTargetEvent dte) {
             }
 
-            private boolean isSupported(File file) {
-                String path = file.getAbsolutePath();
-                String ext = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
-                return ext.equals("png") || ext.equals("jpg") || ext.equals("jpeg") || ext.equals("gif");
-            }
-
-            @SuppressWarnings("unchecked")
-            private java.util.List<File> droppedFiles(DropTargetDropEvent dtde) throws IOException, UnsupportedFlavorException {
-                return ((java.util.List<File>) dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor))
-                        .stream().filter(this::isSupported).collect(Collectors.toList());
-            }
-
             @Override
             public void drop(DropTargetDropEvent dtde) {
                 try {
                     dtde.acceptDrop(DnDConstants.ACTION_COPY);
                     java.util.List<File> files = droppedFiles(dtde);
 
-                    new Thread(() -> handleFiles(files, progressBar, label)).start();
+                    new Thread(() -> handleFiles(files)).start();
                 } catch (Exception e) {
                     System.err.println("Cannot handle files");
                 }
@@ -237,7 +235,7 @@ class MainWindow {
                 if (json.isGIF) {
                     output = json.toString(ConfigManager.getFormat());
                 } else {
-                    output = json.toString();
+                    output = json.toString(ConfigManager.getFormat());
                 }
             } else {
                 output = json.getMultipleResults().stream()
@@ -254,14 +252,14 @@ class MainWindow {
         }
     }
 
-    private void handleFiles(java.util.List<File> files, JProgressBar progressBar, JLabel label) {
+    private void handleFiles(java.util.List<File> files) {
         java.util.List<String> cookies = ConfigManager.isConnected() ? login() : List.of();
 
         invokeLater(() -> {
             setRedFace();
             progressBar.setVisible(true);
             progressBar.setValue(0);
-            label.setText("Envoi en cours...");
+            statusLabel.setText("Envoi en cours...");
         });
 
         try {
@@ -273,10 +271,60 @@ class MainWindow {
         }
 
         invokeLater(() -> {
-            label.setText("Envoyer vers Rehost");
+            statusLabel.setText("Envoyer vers Rehost");
             setBlackAndWhiteFace();
             progressBar.setVisible(false);
             progressBar.setValue(0);
         });
+    }
+
+    private void addClipboardListener(JFrame frame) {
+        KeyStroke ctrlV = KeyStroke.getKeyStroke("ctrl V");
+
+        // Add an action for Ctrl+V
+        InputMap inputMap = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = frame.getRootPane().getActionMap();
+
+        inputMap.put(ctrlV, "paste");
+        actionMap.put("paste", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleClipboardContent();
+            }
+        });
+    }
+
+    private void handleClipboardContent() {
+        // Access the clipboard
+        Transferable clipboardContent = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+
+        if (clipboardContent != null) {
+            try {
+                // Check if the clipboard contains plain text
+                if (clipboardContent.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+                    BufferedImage clip = (BufferedImage) clipboardContent.getTransferData(DataFlavor.imageFlavor);
+
+                    // Save to a temporary file
+                    File tempFile = File.createTempFile("clipboard_", ".png");
+                    System.out.println(tempFile.getAbsolutePath());
+                    ImageIO.write(clip, "png", tempFile);
+
+                    System.out.println("Sending image from clipboard");
+                    new Thread(() -> handleFiles(List.of(tempFile))).start();
+                } else if (clipboardContent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    List<File> clip = (List<File>) clipboardContent.getTransferData(DataFlavor.javaFileListFlavor);
+                    List<File> supportedFiles = clip.stream().filter(this::isImageSupported).collect(Collectors.toList());
+
+                    System.out.println("Sending images from files in clipboard");
+                    new Thread(() -> handleFiles(supportedFiles)).start();
+                } else {
+                    System.out.println("Clipboard does not contain image.");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } else {
+            System.out.println("Clipboard is empty.");
+        }
     }
 }

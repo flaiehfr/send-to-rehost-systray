@@ -29,6 +29,8 @@ L'application s'intègre au systray Windows avec un redface reconnaissable :
 
 ![Interface systray](docs/systray.png)
 
+Lorsqu'elle est ouverte elle apparait également dans la barre des tâches.
+
 ---
 
 ### Envoi d'images simplifié
@@ -48,7 +50,7 @@ Une fois terminé, le résultat (URL ou autre) est automatiquement copié dans v
 
 ## Configuration
 
-L'application offre des options de configuration accessibles via un clic droit sur l'icône dans le systray :
+L'application offre des options de configuration accessibles via un clic droit sur le redface de la fenêtre principale :
 
 ![Accéder aux paramètres](docs/open-settings.png)
 

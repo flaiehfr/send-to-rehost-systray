@@ -37,6 +37,7 @@ class MainWindow {
     public MainWindow() {
         this.frame = createFrame();
         this.addClipboardListener(this.frame);
+        this.frame.setIconImage(imageIcon("/redface-small.png").getImage());
     }
 
     public static java.util.List<String> fetchCookie(String urlString, String email, String password) throws Exception {

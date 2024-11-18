@@ -5,7 +5,7 @@
 ---
 
 ## Comment utiliser
-1. **Télécharger l'archive**: [https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1/send-to-rehost.jar](https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1/send-to-rehost.jar)
+1. **Télécharger l'archive**: [https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1.1/send-to-rehost.jar](https://github.com/flaiehfr/send-to-rehost-systray/releases/download/v1.1/send-to-rehost.jar)
 2. **Version de Java**: Il vous faut une version de Java 11 minimum, plus récent c'est mieux 
 3. **Démarrez l'application** : En double cliquant sur le fichier `send-to-rehost.jar`, ou depuis une ligne de commande `java -jar send-to-rehost.jar`. L'icône apparaîtra dans le systray Windows.
 4. **Déposez vos images** : Faites glisser vos fichiers dans la fenêtre ouverte.
